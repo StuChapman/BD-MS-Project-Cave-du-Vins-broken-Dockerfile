@@ -154,6 +154,11 @@ def populate_form():
 @app.route('/add_wine', methods=["GET", "POST"])
 def add_wine():
     nameadd = request.values.get("name")
+    vintageadd = request.values.get("vintage")
+    colouradd = request.values.get("colour")
+    countryadd = request.values.get("country")
+    regionadd = request.values.get("region")
+    grapeadd = request.values.get("grape")
     if not any(char.islower() for char in nameadd):
         flash('wine name must be populated')
         return render_template("add_wine.html",
@@ -161,8 +166,13 @@ def add_wine():
                                colours=mongo.db.colours.find(),
                                country=mongo.db.country.find(),
                                region=mongo.db.region.find(),
-                               grape=mongo.db.grape.find())
-    vintageadd = request.values.get("vintage")
+                               grape=mongo.db.grape.find(),
+                               results_vintage=vintageadd,
+                               results_colour=colouradd,
+                               results_country=countryadd,
+                               results_region=regionadd,
+                               results_grape=grapeadd
+                               )
     if not all(char.isdigit() for char in vintageadd):
         flash('vintage must be 4 numerals')
         return render_template("add_wine.html",
@@ -170,19 +180,28 @@ def add_wine():
                                colours=mongo.db.colours.find(),
                                country=mongo.db.country.find(),
                                region=mongo.db.region.find(),
-                               grape=mongo.db.grape.find())
-    colouradd = request.values.get("colour")
-    countryadd = request.values.get("country")
-    regionadd = request.values.get("region")
-    grapeadd = request.values.get("grape")
-    if nameadd == "" or vintageadd == "":
+                               grape=mongo.db.grape.find(),
+                               results_name=nameadd,
+                               results_colour=colouradd,
+                               results_country=countryadd,
+                               results_region=regionadd,
+                               results_grape=grapeadd
+                               )
+    if nameadd == "" or vintageadd == "" or colouradd == "" or countryadd == "" or regionadd == "" or grapeadd == "":
         flash('all fields must be populated')
         return render_template("add_wine.html",
-                           user_name='User: ' + session['username'],
-                           colours=mongo.db.colours.find(),
-                           country=mongo.db.country.find(),
-                           region=mongo.db.region.find(),
-                           grape=mongo.db.grape.find())
+                               user_name='User: ' + session['username'],
+                               colours=mongo.db.colours.find(),
+                               country=mongo.db.country.find(),
+                               region=mongo.db.region.find(),
+                               grape=mongo.db.grape.find(),
+                               results_name=nameadd,
+                               results_vintage=vintageadd,
+                               results_colour=colouradd,
+                               results_country=countryadd,
+                               results_region=regionadd,
+                               results_grape=grapeadd
+                               )
 
     # Credit: https://pythonprogramming.net/flash-flask-tutorial/
     flash("The wine has been added")
@@ -195,8 +214,8 @@ def add_wine():
                                                              "region": regionadd,
                                                              "grape": grapeadd,
                                                              "photo_url": "",
-                                                             "tasting_notes": ""}
-                                                            ))
+                                                             "tasting_notes": ""})
+                                                             )
 
 
 @app.route('/delete_wine/<wine_id>')
@@ -204,12 +223,18 @@ def delete_wine(wine_id):
     # Credit: https://pythonprogramming.net/flash-flask-tutorial/
     flash("The wine has been deleted")
     return render_template('index.html',
+                           delete=mongo.db.wines.remove({'_id': ObjectId(wine_id)}),
                            user_name='User: ' + session['username'],
                            colours=mongo.db.colours.find(),
                            country=mongo.db.country.find(),
                            region=mongo.db.region.find(),
                            grape=mongo.db.grape.find(),
-                           delete=mongo.db.wines.remove({'_id': ObjectId(wine_id)})
+                           results_winename="",
+                           results_vintage="",
+                           results_colour="",
+                           results_country="",
+                           results_region="",
+                           results_grape=""
                            )
 
 
@@ -475,18 +500,18 @@ def search():
                                     {"region": regionsearch},
                                     {"grape": grapesearch}
                                     ]}),
-                           user_name=user_return,
-                           colours=mongo.db.colours.find(),
-                           country=mongo.db.country.find(),
-                           region=mongo.db.region.find(),
-                           grape=mongo.db.grape.find(),
-                           results_winename=resultname,
-                           results_vintage=resultvintage,
-                           results_colour=resultcolour,
-                           results_country=resultcountry,
-                           results_region=resultregion,
-                           results_grape=resultgrape
-                           )
+                                    user_name=user_return,
+                                    colours=mongo.db.colours.find(),
+                                    country=mongo.db.country.find(),
+                                    region=mongo.db.region.find(),
+                                    grape=mongo.db.grape.find(),
+                                    results_winename=resultname,
+                                    results_vintage=resultvintage,
+                                    results_colour=resultcolour,
+                                    results_country=resultcountry,
+                                    results_region=resultregion,
+                                    results_grape=resultgrape
+                                    )
 
 
 # Add tasting Note Routes
@@ -508,23 +533,23 @@ def add_tasting_note():
     tastingnoteadd = request.values.get("add_tasting_note")
     wineid = request.values.get("wine_id")
     return render_template("index.html",
-        user_name='User: ' + session['username'],
-        colours=mongo.db.colours.find(),
-        country=mongo.db.country.find(),
-        region=mongo.db.region.find(),
-        grape=mongo.db.grape.find(),
-        results_winename="",
-        results_vintage="",
-        results_colour="",
-        results_country="",
-        results_region="",
-        results_grape="",
-        update=mongo.db.wines.update({'_id': ObjectId(wineid)},
-                                     # Credit: https://stackoverflow.com/questions/10290621/
-                                     # how-do-i-partially-update-an-object-in-mongodb-so-the-new-
-                                     # object-will-overlay
-                                     {"$set": {'tasting_notes': tastingnoteadd}}),
-                                     results=mongo.db.wines.find({'_id': ObjectId(wineid)}))
+                            user_name='User: ' + session['username'],
+                            colours=mongo.db.colours.find(),
+                            country=mongo.db.country.find(),
+                            region=mongo.db.region.find(),
+                            grape=mongo.db.grape.find(),
+                            results_winename="",
+                            results_vintage="",
+                            results_colour="",
+                            results_country="",
+                            results_region="",
+                            results_grape="",
+                            update=mongo.db.wines.update({'_id': ObjectId(wineid)},
+                                                        # Credit: https://stackoverflow.com/questions/10290621/
+                                                        # how-do-i-partially-update-an-object-in-mongodb-so-the-new-
+                                                        # object-will-overlay
+                                                        {"$set": {'tasting_notes': tastingnoteadd}}),
+                                                        results=mongo.db.wines.find({'_id': ObjectId(wineid)}))
 
 
 # Upload Image
@@ -645,5 +670,4 @@ def upload_image(wine_id):
 if __name__ == '__main__':
     app.secret_key = 'mysecret'
     app.run(host=os.environ.get('IP'),
-            port=int(os.environ.get('PORT')),
-            debug=True)
+            debug=False)
